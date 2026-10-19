@@ -177,7 +177,7 @@ Describe 'Tenant pre-check edge cases (mocked Graph)' {
         $j = Get-Content -LiteralPath $f.Json -Raw -Encoding UTF8 | ConvertFrom-Json
         $j.PSObject.Properties.Name | Should -Contain 'Apps'
         $j.PSObject.Properties.Name | Should -Contain 'Findings'
-        $j.KitVersion | Should -Be '1.2.2'
+        $j.KitVersion | Should -Be '1.2.3'
     }
 }
 
