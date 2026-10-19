@@ -6,7 +6,7 @@ Read-only PowerShell diagnostics for Microsoft Intune Win32 app deployments (Kit
 >
 > **Test in non-production first.** Run them in a test tenant and on a test device before you use them anywhere else. They are provided AS IS under the MIT license, with no warranty.
 
-Join the Deployment Doctor waitlist: https://zakitpro.com/doctor/
+Join the Win32 Deployment Doctor waitlist: https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=kit2-beta
 
 ## Versions
 | Script file | Script version | Matching paid kit version | Last updated |
@@ -96,6 +96,9 @@ Install-Module Pester -MinimumVersion 5.0 -Scope CurrentUser
 Install-Module PSScriptAnalyzer -Scope CurrentUser
 Invoke-Pester -Path ./scripts/tests
 ```
+
+## Get the full kit: join the waitlist
+The paid Win32 Deployment Doctor (Kit 2) is planned for late January 2027. Join the waitlist on zakitpro.com to get an email when it ships: [**Join the Win32 Deployment Doctor waitlist**](https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=kit2-beta)
 
 ## Related
 - Win32 app scripts: [zakopenc/win32-deployment-doctor-beta](https://github.com/zakopenc/win32-deployment-doctor-beta)
