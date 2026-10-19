@@ -6,7 +6,7 @@ Read-only PowerShell diagnostics for Microsoft Intune Win32 app deployments (Kit
 >
 > **Test in non-production first.** Run them in a test tenant and on a test device before you use them anywhere else. They are provided AS IS under the MIT license, with no warranty.
 
-Join the Win32 Deployment Doctor waitlist: https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=kit2-beta
+**Get the full kit.** These scripts are free and will stay free. The paid Win32 App Deployment Doctor adds a 54-page guide and the explanations and fixes for its 22 known causes. It's planned for Tuesday, December 1, 2026, sold together with the Autopilot kit. [Join the waitlist](https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=doctor_waitlist&utm_content=kit2_top)
 
 ## Versions
 | Script file | Script version | Matching paid kit version | Last updated |
@@ -97,8 +97,23 @@ Install-Module PSScriptAnalyzer -Scope CurrentUser
 Invoke-Pester -Path ./scripts/tests
 ```
 
-## Get the full kit: join the waitlist
-The paid Win32 Deployment Doctor (Kit 2) is planned for late January 2027. Join the waitlist on zakitpro.com to get an email when it ships: [**Join the Win32 Deployment Doctor waitlist**](https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=kit2-beta)
+## Get the full kit
+
+The scripts in this repo are the same files that ship in the paid kit. You can check them against the hashes at https://www.zakitpro.com/verify/. The Win32 App Deployment Doctor adds what this repo leaves out:
+
+- a 54-page guide: triage, six runbook chapters and worked examples on fake data
+- the explanations and fixes for the 22 known causes (where your report says "Removed from the beta scripts repo")
+- the two procedures that change state, written up with rollback notes (the scripts never make changes)
+- a printable flowchart and a one-page quick start
+- quarterly known-cause updates for 12 months
+
+It's planned for Tuesday, December 1, 2026, sold together with the Autopilot + Device Prep kit, and waitlist members hear first: [join the waitlist](https://www.zakitpro.com/doctor/win32/?utm_source=github&utm_medium=readme&utm_campaign=doctor_waitlist&utm_content=kit2_end).
+
+Want to see a report before you run anything? [docs/sample-report.html](https://github.com/zakopenc/win32-deployment-doctor-beta/blob/main/docs/sample-report.html) is a tenant pre-check report built from invented contoso-style apps. GitHub shows the file's source, so download it (Raw, then save) and open it in a browser.
+
+### Ran it on a real tenant or device?
+
+Please open a [Test report](https://github.com/zakopenc/win32-deployment-doctor-beta/issues/new?template=test-report.md), scrubbed first: no tenant names, IDs, UPNs, serial numbers, hostnames or secrets. The paid kit doesn't go on sale until at least one tester has reported a run on a real tenant or device, so a clean run with nothing to report helps too. I'll ask before I quote or count anything you post.
 
 ## Related
 - Win32 app scripts: [zakopenc/win32-deployment-doctor-beta](https://github.com/zakopenc/win32-deployment-doctor-beta)
