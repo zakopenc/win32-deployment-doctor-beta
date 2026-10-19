@@ -144,3 +144,23 @@ Describe 'Kit 2 device HTML report' {
         @(Get-ChildItem -LiteralPath (Join-Path $TestDrive 'dn') -Filter '*.html').Count | Should -Be 0
     }
 }
+
+Describe 'Kit 2 beta next-step line' {
+    BeforeAll {
+        $script:KitUrl = 'https://www.zakitpro.com/doctor/win32/?utm_source=script&utm_medium=console&utm_campaign=kit2-beta'
+        $script:FullDb = (Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'known-causes.json') -Raw).Replace('Removed from the beta scripts repo; see the full kit.', 'Full text.') | ConvertFrom-Json
+    }
+    It 'returns the line for the trimmed beta data' {
+        Get-ZkNextStepNote -KnownCause $script:Db | Should -Be "Next step: the full Win32 Deployment Doctor kit is coming. Join the waitlist: $script:KitUrl"
+    }
+    It 'returns nothing for full data or no data' {
+        Get-ZkNextStepNote -KnownCause $script:FullDb | Should -BeNullOrEmpty
+        Get-ZkNextStepNote -KnownCause $null | Should -BeNullOrEmpty
+    }
+    It 'shows the note in the HTML footer as encoded text, not a link' {
+        $h = ConvertTo-ZkDashboardHtml -Title 'T' -Finding @() -FooterNote (Get-ZkNextStepNote -KnownCause $script:Db)
+        $h | Should -Match 'utm_source=script&amp;utm_medium=console'
+        $h | Should -Not -Match 'href="https://www\.zakitpro'
+        (ConvertTo-ZkDashboardHtml -Title 'T' -Finding @()) | Should -Not -Match 'zakitpro\.com'
+    }
+}
