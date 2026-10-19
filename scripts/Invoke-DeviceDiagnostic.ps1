@@ -69,7 +69,7 @@
 
 .NOTES
     Name:        Invoke-DeviceDiagnostic.ps1
-    Version:     1.2.2 (2026-10-16)
+    Version:     1.2.3 (2026-10-19)
     Publisher:   ZakitPro (zakitpro.com), author Abderrazak Elbouchikhi (Zak). Support: hello@zakitpro.com
     Requires:    Windows PowerShell 5.1 or PowerShell 7.x. Local admin recommended (log folder ACL).
                  No modules, no network, no Graph.
@@ -123,7 +123,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:KitVersion = '1.2.2'
+$script:KitVersion = '1.2.3'
 $script:GuidPattern = '[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}'
 $script:SuccessCodes = @(0, 1641, 3010)   # MsiExec docs: 1641 and 3010 "indicate success"
 
@@ -722,6 +722,31 @@ function ConvertTo-ZkReportStatus {
     }
 }
 
+function Get-ZkNextStepNote {
+    <#
+    .SYNOPSIS
+        Returns the one-line next-step pointer for beta runs, or an empty string.
+    .DESCRIPTION
+        The public beta repository ships a trimmed known-causes.json whose text fields read
+        "Removed from the beta scripts repo". Only then is the next-step line returned, so the
+        same script inside the paid kit prints nothing extra. Text only: no network call,
+        no telemetry, and nothing is opened.
+    .PARAMETER KnownCause
+        The parsed known-causes.json, or its causes array.
+    .EXAMPLE
+        Get-ZkNextStepNote -KnownCause $db
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param([Parameter()][AllowNull()][object]$KnownCause)
+    if ($null -eq $KnownCause) { return '' }
+    $raw = ConvertTo-Json -InputObject $KnownCause -Depth 8 -Compress
+    if ($raw -match 'Removed from the beta scripts repo') {
+        return 'Next step: the full Win32 Deployment Doctor kit is coming. Join the waitlist: https://www.zakitpro.com/doctor/win32/?utm_source=script&utm_medium=console&utm_campaign=kit2-beta'
+    }
+    ''
+}
+
 function Get-ZkNextStepLink {
     <#
     .SYNOPSIS
@@ -764,6 +789,8 @@ function ConvertTo-ZkDashboardHtml {
         Pre-escaped HTML appended after the findings table.
     .PARAMETER Brand
         Product name shown above the title.
+    .PARAMETER FooterNote
+        Optional plain-text line added to the footer (HTML-encoded, no link).
     .PARAMETER Banner
         Plain-text notice shown under the header.
     .EXAMPLE
@@ -781,7 +808,8 @@ function ConvertTo-ZkDashboardHtml {
         [Parameter()][AllowEmptyCollection()][object[]]$Finding = @(),
         [Parameter()][string]$ExtraHtml = '',
         [Parameter()][string]$Brand = 'ZakitPro Deployment Doctor',
-        [Parameter()][string]$Banner = 'Read-only, local report. Not tested against a live tenant. Test in non-production first. This file makes no network requests.'
+        [Parameter()][string]$Banner = 'Read-only, local report. Not tested against a live tenant. Test in non-production first. This file makes no network requests.',
+        [Parameter()][string]$FooterNote = ''
     )
     $enc = { param($x) [System.Net.WebUtility]::HtmlEncode([string]$x) }
     $label = @{ red = 'Critical'; yellow = 'Warning'; green = 'Passed'; grey = 'Info' }
@@ -867,7 +895,7 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append($rows.ToString())
     [void]$sb.Append('</tbody></table></div>')
     [void]$sb.Append($ExtraHtml)
-    [void]$sb.Append('<footer>Health score = round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical)); Info and not-checked rows are excluded, and the score is 100 when nothing was scored. If any Critical finding exists, the score is capped at 49 and shown in red. It summarises this run only and is not a security rating. Generated locally by a read-only script; no data leaves this file.</footer>')
+    [void]$sb.Append('<footer>Health score = round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical)); Info and not-checked rows are excluded, and the score is 100 when nothing was scored. If any Critical finding exists, the score is capped at 49 and shown in red. It summarises this run only and is not a security rating. Generated locally by a read-only script; no data leaves this file.' + $(if ($FooterNote) { '<br>' + (& $enc $FooterNote) } else { '' }) + '</footer>')
     [void]$sb.Append('</div><script>' + $js + '</script></body></html>')
     $sb.ToString()
 }
@@ -880,6 +908,8 @@ function Export-ZkDeviceReport {
         Report object.
     .PARAMETER OutputPath
         Folder.
+    .PARAMETER FooterNote
+        Optional plain-text line for the report footer.
     .PARAMETER NoHtml
         Write only the JSON report.
     .EXAMPLE
@@ -891,7 +921,7 @@ function Export-ZkDeviceReport {
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
-    param([Parameter(Mandatory)] $Report, [Parameter(Mandatory)] [string]$OutputPath, [Parameter()] [switch]$NoHtml)
+    param([Parameter(Mandatory)] $Report, [Parameter(Mandatory)] [string]$OutputPath, [Parameter()] [switch]$NoHtml, [Parameter()] [string]$FooterNote = '')
     if (-not (Test-Path -LiteralPath $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
     $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
     $json = Join-Path -Path $OutputPath -ChildPath "Kit2-DeviceDiagnostic-$stamp.json"
@@ -934,7 +964,7 @@ function Export-ZkDeviceReport {
     [void]$x.Append('<p class="muted">"(thread)" = line attributed to the app because it followed an app line on the same thread. Registry state names are community-decoded; undecoded values are shown raw.</p>')
     $imeText = if ($Report.Ime) { 'IME {0} {1}' -f $Report.Ime.State, $Report.Ime.Version } else { 'IME not checked (offline)' }
     $src = if ($Report.PSObject.Properties['Source']) { $Report.Source } else { $Report.Computer }
-    $doc = ConvertTo-ZkDashboardHtml -Brand 'ZakitPro Win32 App Deployment Doctor' -Banner 'Read-only, local report built from IME logs and registry state. Not yet run on a real device: check the verdicts against the timeline. This file makes no network requests.' -Title 'Win32 app device diagnostic' -Subtitle ('Kit 2 v{0} | {1} | generated {2} | {3} | log files: {4} | records: {5}' -f $Report.KitVersion, $src, $Report.GeneratedLocal, $imeText, @($Report.LogFiles).Count, $Report.RecordCount) -Finding $dash.ToArray() -ExtraHtml $x.ToString()
+    $doc = ConvertTo-ZkDashboardHtml -Brand 'ZakitPro Win32 App Deployment Doctor' -Banner 'Read-only, local report built from IME logs and registry state. Not yet run on a real device: check the verdicts against the timeline. This file makes no network requests.' -Title 'Win32 app device diagnostic' -Subtitle ('Kit 2 v{0} | {1} | generated {2} | {3} | log files: {4} | records: {5}' -f $Report.KitVersion, $src, $Report.GeneratedLocal, $imeText, @($Report.LogFiles).Count, $Report.RecordCount) -Finding $dash.ToArray() -ExtraHtml $x.ToString() -FooterNote $FooterNote
     Set-Content -LiteralPath $html -Value $doc -Encoding UTF8
     [pscustomobject]@{ Json = $json; Html = $html }
 }
@@ -949,7 +979,8 @@ if ($MyInvocation.InvocationName -ne '.') {
         catch { throw "Could not read the tenant report '$TenantReportPath': $($_.Exception.Message)" }
     }
     $report = Invoke-ZkDeviceDiagnostic -LogPath $LogPath -AppId $AppId -DaysBack $DaysBack -KnownCause $db -TenantReport $tenant -SkipRegistry:$SkipRegistry -ExpectNewVersion:$ExpectNewVersion
-    $files = Export-ZkDeviceReport -Report $report -OutputPath $OutputPath -NoHtml:$NoHtml
+    $nextStep = Get-ZkNextStepNote -KnownCause $db
+    $files = Export-ZkDeviceReport -Report $report -OutputPath $OutputPath -NoHtml:$NoHtml -FooterNote $nextStep
     $summary = [pscustomobject]@{
         ReportJson   = $files.Json
         ReportHtml   = $files.Html
@@ -972,5 +1003,6 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
     if (@($report.Apps).Count -eq 0) { Write-Host '  No Win32 app activity found in the logs for the period checked.' }
     if ($files.Html) { Write-Host ('Report: {0}' -f $files.Html) } else { Write-Host ('Report (JSON only): {0}' -f $files.Json) }
+    if ($nextStep) { Write-Host $nextStep }
     if ($PassThru) { $summary }
 }
