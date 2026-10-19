@@ -22,12 +22,17 @@ Do not attach unredacted HTML/JSON reports or log files.
 - PowerShell version (`$PSVersionTable.PSVersion`):
 - Microsoft.Graph.Authentication version (tenant script):
 - IME version and app type (Win32 / dependency / supersedence):
-- Run context (admin / offline logs with -LogPath):
+- Run context (admin / offline logs copied from a real device with -LogPath / shipped sample-logs (fake data)):
 
 ## Results
 - What did you expect?
 - What did the script report (redacted)?
 - Were the findings correct? Any false positives or missed issues?
+
+## Permission
+- [ ] ZakitPro may count this report when deciding whether the kit is ready to release.
+- [ ] ZakitPro may quote a short excerpt of this report, credited to my GitHub handle.
+- [ ] Same as above, but keep me anonymous.
 
 ## Errors
 Paste redacted error messages or warnings here.
